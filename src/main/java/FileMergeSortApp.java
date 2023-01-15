@@ -1,4 +1,9 @@
 import commandline.CommandLineArgsParser;
+import reader.LineParser;
+import reader.LongParser;
+import reader.StringParser;
+
+import java.util.Comparator;
 
 public class FileMergeSortApp {
 
@@ -9,8 +14,25 @@ public class FileMergeSortApp {
             return;
         }
 
-        FileMergeSortLongType fileMergeSort = new FileMergeSortLongType(commandLineArgsParser);
+        FileMergeSort<?> fileMergeSort;
+        LineParser lineParser = new LongParser();
+        Comparator<?> lineComparator = Comparator.naturalOrder();
+
+        switch (commandLineArgsParser.getDataType()) {
+            case INTEGER -> {
+                lineParser = new LongParser();
+            }
+            case STRING -> lineParser = new StringParser();
+        }
+
+        if (!commandLineArgsParser.isSortingOrderAsc()) {
+            lineComparator = lineComparator.reversed();
+        }
+
+        fileMergeSort = new FileMergeSort<>(commandLineArgsParser.getInputFiles(),
+                commandLineArgsParser.getOutputFile(), lineParser, lineComparator);
         fileMergeSort.readFiles();
         fileMergeSort.mergeAndWrite();
     }
+
 }

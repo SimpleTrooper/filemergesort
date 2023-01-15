@@ -1,3 +1,5 @@
+package reader;
+
 import java.io.IOException;
 
 public interface NextLineReader<T> {

@@ -1,20 +1,20 @@
+package reader;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 
-public class BufferedLongReader implements NextLineReader<Long>, AutoCloseable {
+public class BufferedLineReader<T> implements NextLineReader<T>, AutoCloseable {
     private final BufferedReader reader;
+    private final LineParser<T> lineParser;
 
-    public BufferedLongReader(BufferedReader reader) {
+    public BufferedLineReader(BufferedReader reader, LineParser<T> lineParser) {
         this.reader = reader;
+        this.lineParser = lineParser;
     }
 
-    public Long readLine() throws IOException, LineFormatException {
+    public T readLine() throws IOException, LineFormatException {
         String nextLine = reader.readLine();
-        try {
-            return Long.valueOf(nextLine);
-        } catch (NumberFormatException ex) {
-            throw new LineFormatException(ex.getMessage());
-        }
+        return lineParser.parse(nextLine);
     }
 
     @Override
