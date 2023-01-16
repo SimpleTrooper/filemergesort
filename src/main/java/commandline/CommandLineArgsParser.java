@@ -1,5 +1,10 @@
 package commandline;
 
+import commandline.state.CommandLineArgState;
+import commandline.state.ReadingFlagsState;
+import commandline.state.ReadingInputFilesState;
+import commandline.state.ReadingOutputFileState;
+import exception.CommandLineArgsException;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,7 +25,7 @@ public class CommandLineArgsParser {
 
     private CommandLineArgState currentState;
 
-    public boolean parseArgs(String[] args) {
+    public void parseArgs(String[] args) throws CommandLineArgsException {
         readingFlagsState = new ReadingFlagsState();
         readingOutputFileState = new ReadingOutputFileState();
         readingInputFilesState = new ReadingInputFilesState();
@@ -29,23 +34,22 @@ public class CommandLineArgsParser {
         for (String arg: args) {
             currentState.parseArg(arg, this);
         }
-        return checkArgs();
+        checkArgs();
     }
 
     public void addInputFile(String inputFile) {
         inputFiles.add(inputFile);
     }
 
-    private boolean checkArgs() {
+    private void checkArgs() throws CommandLineArgsException {
         if (outputFile == null) {
-            return false;
+            throw new CommandLineArgsException("Output file is not specified");
         }
         if (dataType == null) {
-            return false;
+            throw new CommandLineArgsException("Data type is not specified");
         }
         if (inputFiles.size() == 0) {
-            return false;
+            throw new CommandLineArgsException("Input files is not specified");
         }
-        return true;
     }
 }

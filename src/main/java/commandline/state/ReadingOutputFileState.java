@@ -1,4 +1,6 @@
-package commandline;
+package commandline.state;
+
+import commandline.CommandLineArgsParser;
 
 public class ReadingOutputFileState implements CommandLineArgState {
     @Override
@@ -6,10 +8,5 @@ public class ReadingOutputFileState implements CommandLineArgState {
         parser.setOutputFile(arg);
         parser.setCurrentState(parser.getReadingInputFilesState());
         return true;
-    }
-
-    @Override
-    public CommandLineArgState nextState(CommandLineArgsParser parser) {
-        return parser.getReadingInputFilesState();
     }
 }

@@ -1,8 +1,11 @@
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import reader.BufferedLineReader;
 import reader.ContentReader;
-import reader.LineFormatException;
-import reader.LineParser;
-import reader.SortingOrderException;
+import exception.LineFormatException;
+import reader.lineparser.LineParser;
+import exception.SortingOrderException;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,15 +19,18 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
+@Getter
+@Setter
 public class FileMergeSort<T> {
     private final static long THREAD_MAX_WAITING_TIME = 400L;
-    private final static int MAX_QUEUE_SIZE = 10000;
+    private final static int MAX_QUEUE_SIZE = 1000;
     private final Map<String, BlockingQueue<T>> filesContent = new ConcurrentHashMap<>();
     private final Map<String, Thread> threadMap = new ConcurrentHashMap<>();
     private final List<String> inputFiles;
     private final String outputFile;
-    private final LineParser<T> lineParser;
-    private final Comparator<T> lineComparator;
+    private LineParser<T> lineParser;
+    private Comparator<T> lineComparator;
 
     public FileMergeSort(List<String> inputFiles, String outputFile,
                          LineParser<T> lineParser, Comparator<T> lineComparator) {
@@ -34,9 +40,18 @@ public class FileMergeSort<T> {
         this.lineComparator = lineComparator;
     }
 
-    public void readFiles() {
+    public void reverseSortingOrder() {
+        lineComparator = lineComparator.reversed();
+    }
+
+    public void mergeFiles() {
+        startReadingThreads();
+        mergeAndWrite();
+    }
+
+    private void startReadingThreads() {
         for (String file : inputFiles) {
-            BlockingQueue<T> fileContent = new ArrayBlockingQueue<T>(MAX_QUEUE_SIZE);
+            BlockingQueue<T> fileContent = new ArrayBlockingQueue<>(MAX_QUEUE_SIZE);
             filesContent.put(file, fileContent);
             Thread readFile = new Thread(() -> {
                 try (BufferedLineReader<T> nextLineReader = new BufferedLineReader<>(
@@ -47,8 +62,9 @@ public class FileMergeSort<T> {
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 } catch (SortingOrderException | LineFormatException sortingOrderException) {
-                    System.out.printf("ERROR File: %s, %s. The result may not be as expected!%n",
-                            file, sortingOrderException.getMessage());
+                    log.error("File: {}: {}. Following lines will not be processed for that file!", file, sortingOrderException.getMessage());
+                } catch (OutOfMemoryError outOfMemoryError) {
+                    log.error("OutOfMemory: File: {}: {}", file, outOfMemoryError.getMessage());
                 }
             });
             threadMap.put(file, readFile);
@@ -56,7 +72,7 @@ public class FileMergeSort<T> {
         }
     }
 
-    public void mergeAndWrite() {
+    private void mergeAndWrite() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
             boolean allFilesProcessed;
             do {
@@ -69,7 +85,6 @@ public class FileMergeSort<T> {
                         Thread fileThread = threadMap.get(entry.getKey());
                         try {
                             if (fileThread.isAlive()) {
-                                System.out.println("Thread is alive, waiting...");
                                 fileThread.join(THREAD_MAX_WAITING_TIME);
                             }
                         } catch (InterruptedException interruptedException) {

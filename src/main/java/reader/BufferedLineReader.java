@@ -1,5 +1,8 @@
 package reader;
 
+import exception.LineFormatException;
+import reader.lineparser.LineParser;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 

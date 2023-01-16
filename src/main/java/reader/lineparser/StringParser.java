@@ -1,4 +1,6 @@
-package reader;
+package reader.lineparser;
+
+import exception.LineFormatException;
 
 public class StringParser implements LineParser<String> {
     @Override

@@ -1,5 +1,7 @@
 package reader;
 
+import exception.LineFormatException;
+
 import java.io.IOException;
 
 public interface NextLineReader<T> {

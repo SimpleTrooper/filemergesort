@@ -1,4 +1,4 @@
-package reader;
+package exception;
 
 public class LineFormatException extends Exception {
     public LineFormatException(final String message) {
