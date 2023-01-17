@@ -2,6 +2,9 @@ package reader.lineparser;
 
 import exception.LineFormatException;
 
+/**
+ * Обработчик String
+ */
 public class StringParser implements LineParser<String> {
     @Override
     public String parse(String line) throws LineFormatException {

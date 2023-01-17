@@ -19,6 +19,7 @@ import reader.lineparser.LongParser;
 import reader.lineparser.StringParser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Тестовый класс для FileMergeSort. Использует дисковое пространство в папке "src/test/resources"
@@ -99,8 +100,8 @@ public class FileMergeSortTest {
                 Comparator.naturalOrder());
 
         List<List<String>> valuesForFiles = List.of(List.of("A", "B", "A"), List.of("AA", "BB ", "CC"),
-                List.of("AA A", "BBB", "CCC"), List.of("z", "b", "c"));
-        List<String> expected = List.of("A", "AA", "B", "z");
+                List.of("AA A", "BBB", "CCC"), List.of("z", "b", "z"));
+        List<String> expected = List.of("A", "AA", "B", "BBB", "CC", "CCC", "z", "z");
         writeValuesToFiles(valuesForFiles, inputFiles);
 
         fileMergeSort.mergeFiles();
@@ -121,7 +122,7 @@ public class FileMergeSortTest {
 
         List<List<String>> valuesForFiles = List.of(List.of("B", "B", "A"), List.of("BB", "AA", "CC"),
                 List.of("BBB", "BB B ", "AAA"), List.of("z", "c", "b"));
-        List<String> expected = List.of("z", "c", "b", "BBB", "BB", "B", "B", "AA", "A");
+        List<String> expected = List.of("z", "c", "b", "BBB", "BB", "B", "B","AAA", "AA", "A");
         writeValuesToFiles(valuesForFiles, inputFiles);
 
         fileMergeSort.mergeFiles();
@@ -151,9 +152,8 @@ public class FileMergeSortTest {
         try (BufferedReader reader = new BufferedReader(new FileReader(outputFile))) {
             for (int i = 0; i < size; i++) {
                 for (int j = 0; j < inputFilesSize; j++) {
-                    if (reader.ready()) {
-                        assertEquals(i, Long.valueOf(reader.readLine()));
-                    }
+                    assertTrue(reader.ready());
+                    assertEquals(i, Long.valueOf(reader.readLine()));
                 }
             }
         } catch (IOException ioException) {
@@ -173,6 +173,7 @@ public class FileMergeSortTest {
         }
         FileMergeSort<Long> fileMergeSort = new FileMergeSort<>(inputFiles, outputFile, new LongParser(),
                 Comparator.naturalOrder());
+        fileMergeSort.reverseSortingOrder();
 
         fileMergeSort.mergeFiles();
 
@@ -180,9 +181,8 @@ public class FileMergeSortTest {
         try (BufferedReader reader = new BufferedReader(new FileReader(outputFile))) {
             for (int i = size; i >= 0; i--) {
                 for (int j = 0; j < inputFilesSize; j++) {
-                    if (reader.ready()) {
-                        assertEquals(i, Long.valueOf(reader.readLine()));
-                    }
+                    assertTrue(reader.ready());
+                    assertEquals(i, Long.valueOf(reader.readLine()));
                 }
             }
         } catch (IOException ioException) {
@@ -217,9 +217,8 @@ public class FileMergeSortTest {
                     builder.append('c');
                 }
                 for (int j = 0; j < inputFilesSize; j++) {
-                    if (reader.ready()) {
-                        assertEquals(builder.toString(), reader.readLine());
-                    }
+                    assertTrue(reader.ready());
+                    assertEquals(builder.toString(), reader.readLine());
                 }
             }
         } catch (IOException ioException) {

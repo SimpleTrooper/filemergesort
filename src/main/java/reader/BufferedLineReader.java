@@ -6,6 +6,10 @@ import reader.lineparser.LineParser;
 import java.io.BufferedReader;
 import java.io.IOException;
 
+/**
+ * Реализация построчного чтения данных, использующая BufferedReader
+ * @param <T> тип данных
+ */
 public class BufferedLineReader<T> implements NextLineReader<T>, AutoCloseable {
     private final BufferedReader reader;
     private final LineParser<T> lineParser;

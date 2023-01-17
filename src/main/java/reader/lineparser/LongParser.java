@@ -2,6 +2,9 @@ package reader.lineparser;
 
 import exception.LineFormatException;
 
+/**
+ * Обработчик Long
+ */
 public class LongParser implements LineParser<Long> {
     @Override
     public Long parse(String line) throws LineFormatException {

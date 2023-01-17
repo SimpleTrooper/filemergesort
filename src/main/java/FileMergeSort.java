@@ -3,9 +3,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import reader.BufferedLineReader;
 import reader.ContentReader;
-import exception.LineFormatException;
 import reader.lineparser.LineParser;
-import exception.SortingOrderException;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,20 +11,24 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Класс для сортировки файлов слиянием
+ * @param <T> тип данных в файле
+ */
 @Slf4j
 @Getter
 @Setter
 public class FileMergeSort<T> {
     private final static long THREAD_MAX_WAITING_TIME = 400L;
     private final static int MAX_QUEUE_SIZE = 1000;
-    private final Map<String, BlockingQueue<T>> filesContent = new ConcurrentHashMap<>();
-    private final Map<String, Thread> threadMap = new ConcurrentHashMap<>();
+    private final Map<String, BlockingQueue<T>> filesContent = new HashMap<>();
+    private final Map<String, Thread> threadMap = new HashMap<>();
     private final List<String> inputFiles;
     private final String outputFile;
     private LineParser<T> lineParser;
@@ -49,6 +51,11 @@ public class FileMergeSort<T> {
         mergeAndWrite();
     }
 
+    /**
+     * Создает N (количество файлов) блокирующих очередей и добавляет их в хеш-таблицу для связи файл-очередь.
+     * Создает N потоков, которые считывают построчно из соответствующего файла значения в свою блокирующую очередь.
+     * Заполняет хеш-таблицу файл-поток.
+     */
     private void startReadingThreads() {
         for (String file : inputFiles) {
             BlockingQueue<T> fileContent = new ArrayBlockingQueue<>(MAX_QUEUE_SIZE);
@@ -60,18 +67,20 @@ public class FileMergeSort<T> {
                             lineComparator);
                     fileContentReader.readContent();
                 } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                } catch (SortingOrderException | LineFormatException sortingOrderException) {
-                    log.error("File: {}: {}. Following lines will not be processed for that file!", file, sortingOrderException.getMessage());
+                    log.error("IOException: ", ioException);
                 } catch (OutOfMemoryError outOfMemoryError) {
                     log.error("OutOfMemory: File: {}: {}", file, outOfMemoryError.getMessage());
                 }
-            });
+            }, file);
             threadMap.put(file, readFile);
             readFile.start();
         }
     }
 
+    /**
+     * Просматривает хеш-таблицу с блокирующими очередями и записывает поочередно в выходной файл текущий минимальный
+     * элемент
+     */
     private void mergeAndWrite() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
             boolean allFilesProcessed;
@@ -88,7 +97,7 @@ public class FileMergeSort<T> {
                                 fileThread.join(THREAD_MAX_WAITING_TIME);
                             }
                         } catch (InterruptedException interruptedException) {
-                            interruptedException.printStackTrace();
+                            log.error("Interrupted exception: ", interruptedException);
                         }
                         if (entry.getValue().isEmpty()) {
                             continue;
@@ -106,7 +115,7 @@ public class FileMergeSort<T> {
                 }
             } while (!allFilesProcessed);
         } catch (IOException ioException) {
-            ioException.printStackTrace();
+            log.error("IOException: ", ioException);
         }
     }
 }

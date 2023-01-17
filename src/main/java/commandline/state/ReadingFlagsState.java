@@ -3,6 +3,9 @@ package commandline.state;
 import commandline.CommandLineArgsParser;
 import commandline.DataType;
 
+/**
+ * Состояние - считываются аргументы флаги
+ */
 public class ReadingFlagsState implements CommandLineArgState {
     @Override
     public boolean parseArg(String arg, CommandLineArgsParser parser) {

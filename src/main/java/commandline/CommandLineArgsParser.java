@@ -11,6 +11,9 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Обработчик аргументов командной строки
+ */
 @Getter
 @Setter
 public class CommandLineArgsParser {
